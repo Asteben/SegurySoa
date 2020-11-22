@@ -13,7 +13,17 @@ sock.connect(server_address)
 try:
 
     # Send data
-    message = b'This is the message.  It will be repeated.'
+    pydata= {
+        "Nombre":"pansito5",
+        "Email":"pansito5@gmail.com",
+        "Password":"pansito123",
+        "RUT":"3234585-9",
+        "Edad": 552,
+        "Telefono": 519645699
+    }
+    print(pydata)
+    jsondata = json.dumps(pydata)
+    message = b'' + jsondata
     print('sending {!r}'.format(message))
     sock.sendall(message)
 

@@ -2,6 +2,7 @@ import socket
 import sys
 import mysql.connector
 
+
 # Create a TCP/IP socket
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -14,9 +15,8 @@ sock.bind(server_address)
 sock.listen(1)
 
 # Conexion base de datos
-db = mysql.connector.connect(user="root",password="root123",host="localhost",database="mydb")
+db = mysql.connector.connect(user="root",password="root123",host="localhost",database="mydb1")
 c = db.cursor()
-
 while True:
     # Wait for a connection
     print('waiting for a connection')
@@ -32,12 +32,17 @@ while True:
             connection.sendall(aux)
             if aux == b'' :
                 print('no data from', client_address)
-                print(data)
-                #connection.sendall(data)
+                dataobject = eval(data)
+                sql = "INSERT INTO usuario (Nombre, Email, Password, RUT, Edad, Telefono) VALUES ( %s, %s, %s, %s, %s, %s )"
+                datainsert = (dataobject["Nombre"], dataobject["Password"], dataobject["Email"], dataobject["RUT"], dataobject["Edad"], dataobject["Telefono"])
+                c.execute(sql, datainsert)
+                db.commit()
+                print(dataobject)
                 break
 
     finally:
         # Clean up the connection
-        c.close()
-        db.close()
         connection.close()
+
+c.close()
+db.close()
