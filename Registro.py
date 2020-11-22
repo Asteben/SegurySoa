@@ -34,7 +34,7 @@ while True:
                 print('no data from', client_address)
                 dataobject = eval(data)
                 sql = "INSERT INTO usuario (Nombre, Email, Password, RUT, Edad, Telefono) VALUES ( %s, %s, %s, %s, %s, %s )"
-                datainsert = (dataobject["Nombre"], dataobject["Password"], dataobject["Email"], dataobject["RUT"], dataobject["Edad"], dataobject["Telefono"])
+                datainsert = (dataobject["Nombre"], dataobject["Email"], dataobject["Password"], dataobject["RUT"], dataobject["Edad"], dataobject["Telefono"])
                 c.execute(sql, datainsert)
                 db.commit()
                 print(dataobject)
