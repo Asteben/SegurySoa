@@ -1,6 +1,6 @@
 import socket
 import sys
-#import MySQLdb
+import mysql.connector
 
 # Create a TCP/IP socket
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -13,9 +13,9 @@ sock.bind(server_address)
 # Listen for incoming connections
 sock.listen(1)
 
-# Conexión base de datos
-#db=MySQLdb.connect(host="localhost",user="root",passwd="root123",db="mydb")
-#c = db.cursor(MySQLdb.cursors.DictCursor)
+# Conexion base de datos
+db = mysql.connector.connect(user="root",password="root123",host="localhost",database="mydb")
+c = db.cursor()
 
 while True:
     # Wait for a connection
@@ -38,4 +38,6 @@ while True:
 
     finally:
         # Clean up the connection
+        c.close()
+        db.close()
         connection.close()
