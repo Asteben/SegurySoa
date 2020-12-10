@@ -15,7 +15,7 @@ sock.bind(server_address)
 sock.listen(1)
 
 # Conexion base de datos
-db = mysql.connector.connect(user="root",password="",host="localhost",database="mydb1")
+db = mysql.connector.connect(user="root",password="root123",host="localhost",database="mydb1")
 c = db.cursor()
 
 a = 0 
@@ -32,7 +32,7 @@ while a == 0:
 
             datos = eval(aux)
             #print(datos)
-            sql = "SELECT * FROM usuario  WHERE usuario.Email = %s AND usuario.Password = %s;  "
+            sql = "SELECT * FROM Usuario  WHERE Email = %s AND Password = %s;  "
             data_search = (datos['Email'],datos['Password'])
             c.execute(sql, data_search)
 

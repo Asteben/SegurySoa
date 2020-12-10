@@ -15,14 +15,14 @@ Login_user = False
 try:
 
     pydata= {
-        "Email":"pansito5@gmail.com",
-        "Password":"pansito123",
+        "Email":"sujeto1@gmail.com",
+        "Password":"sujeto123",
     }
-    #print(pydata)
     jsondata = json.dumps(pydata)
-    message = bytes(jsondata, 'utf-8') 
-    #print('sending {!r}'.format(message))
-    sock.sendall(message)
+    bjson = b'' + jsondata
+    #message = bytes(jsondata, 'utf-8') 
+    #print('sending {!r}'.format(jsdondata))
+    sock.sendall(bjson)
 
     data = b''
     while True:
