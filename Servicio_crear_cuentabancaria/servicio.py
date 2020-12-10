@@ -44,19 +44,19 @@ while a == 0:
             
             if len(myresult): #si ya existe la cuenta
                 print("Error")
-                connection.sendall(b'False')
+                sock.sendall(b'False')
             
             else: #si no existe la cuenta
                 sql = "INSERT INTO Cuenta (Numero, Saldo, Usuario_idUsuario, Tipo_idTipo) VALUES (%s, 0, %s, %s)"
                 datainsert = (datos['Numero'], datos['Usuario_idUsuario'],datos['Tipo_idTipo'])
                 cur.execute(sql,datainsert)
                 conn.commit()
-                connection.sendall(b'True')
+                sock.sendall(b'True')
                 
             break
-        connection.close()
+        sock.close()
         a = 1
 
     finally:
         # Clean up the connection
-        connection.close()
+        sock.close()

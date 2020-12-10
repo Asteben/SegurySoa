@@ -57,7 +57,7 @@ while a == 0:
             datos = eval(aux)
             print(datos)
 
-            sql = "SELECT Saldo FROM Cuenta WHERE cuenta.Cuenta_idCuenta = %s ;"
+            sql = "SELECT Saldo FROM Cuenta WHERE idCuenta = ? ;"
             data_search = (datos['cuenta'],)
             cur.execute(sql, data_search)
 
@@ -69,46 +69,53 @@ while a == 0:
             if len(myresult): #si existe la cuenta
                 if myresult[0][0] > int(datos['monto']):
 
-                    sql = "SELECT Saldo, idCuenta FROM Cuenta WHERE idCuenta = %s ;"  #modifica saldo cuenta destino
+                    sql = "SELECT Saldo, idCuenta FROM Cuenta WHERE Numero = ? ;"  #modifica saldo cuenta destino
+                    cur.execute(sql,datos['cuentadestino'],)
+                    myresult = cur.fetchall()
+                    saldo = myresult[0][0]
+                    cuentad = myresult[0][1]
+                    conn.commit()
+
+                    sql = "UPDATE  Cuenta SET saldo = ? WHERE idCuenta = ? ;"
+                    cur.execute(sql,int(datos['monto'])+saldo, cuentad,)
+                    conn.commit()
+
+                    sql = "SELECT Saldo, Numero FROM Cuenta WHERE idCuenta = ? ;"  #modifica saldo cuenta origen
                     cur.execute(sql,datos['cuenta'],)
                     myresult = cur.fetchall()
                     saldo = myresult[0][0]
-                    cuenta = myresult[0][1]
+                    numero = myresult[0][1]
                     conn.commit()
 
-                    sql = "UPDATE  Cuenta SET saldo = %s WHERE idCuenta = %s ;"
-                    cur.execute(sql,int(datos['monto'])+saldo,datos['cuentadestino'],)
-                    conn.commit()
-
-                    sql = "SELECT Saldo, idCuenta FROM cuenta WHERE cuenta.idcuenta = %s ;"  #modifica saldo cuenta origen
-                    cur.execute(sql,datos['cuenta'],)
-                    myresult = cur.fetchall()
-                    saldo = myresult[0][0]
-                    cuenta = myresult[0][1]
-                    conn.commit()
-
-                    sql = "UPDATE Cuenta SET Saldo = %s WHERE idCuenta = %s ;"
+                    sql = "UPDATE Cuenta SET Saldo = ? WHERE idCuenta = ? ;"
                     cur.execute(sql,saldo - int(datos['monto']),datos['cuenta'],)
                     conn.commit()
 
 
-                    sql = "INSERT INTO TransaccionEnviada (Monto, Comentario, Fecha, Cuenta_idCuenta, Numero_cuenta_destino) VALUES (%s, %s,%s, %s, %s)"  #inserta en pagos
-                    val = ( datos['monto'], datos['comentario'], datos['fecha'], datos['cuenta'], datos['cuentadestino'])
+                    sql = "INSERT INTO TransaccionEnviada (Monto, Comentario, Fecha, Cuenta_idCuenta, Numero_cuenta_destino) VALUES (%s, %s,%s, %s, %s)"  #inserta en envio
+                    val = ( datos['monto'], datos['comentario'], datos['fecha'], datos['cuenta'], datos['cuentadestino'],)
                     cur.execute(sql, val)
                     conn.commit()
+
+                    sql = "INSERT INTO TransaccionRecibida (Monto, Comentario, Fecha, Cuenta_idCuenta, Numero_cuenta_origen) VALUES (%s, %s,%s, %s, %s)"  #inserta en recibido
+                    val = ( datos['monto'], datos['comentario'], datos['fecha'], cuentad, numero,)
+                    cur.execute(sql, val)
+                    conn.commit()
+
+
                     ##Envia un true
                     tx_cmd = service_name + 'True'
                     tx = generate_tx_length(len(tx_cmd)) + tx_cmd
                     sock.send(tx.encode(encoding='UTF-8'))
                 else:
-                    ##Envia un false
+                    ##Envia un falsesaldo
                     tx_cmd = service_name + 'Falsesaldo'
                     tx = generate_tx_length(len(tx_cmd)) + tx_cmd
                     sock.send(tx.encode(encoding='UTF-8'))
                 break
 
             else:
-                ##Envia un true
+                ##Envia un faslecuenta
                 tx_cmd = service_name + 'Falsecuenta'
                 tx = generate_tx_length(len(tx_cmd)) + tx_cmd
                 sock.send(tx.encode(encoding='UTF-8'))

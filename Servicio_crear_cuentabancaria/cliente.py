@@ -14,10 +14,12 @@
                 "Tipo_idTipo":"",
                 }
 
-                RutCuenta = string[0:(len(rut_login-2))]
-                pydata["Numero"] = Numero
-                pydata["Usuario_idUsuario"] = RutCuenta
                 pydata["Tipo_idTipo"] = Tipo_idTipo
+                ruts = str(rut_login)
+                RutCuenta = ruts[0:(len(ruts)-1)]
+                numero = int(str(Tipo_idTipo) + str(RutCuenta))
+                pydata["Numero"] = numero
+                pydata["Usuario_idUsuario"] = id_login
 
                 Envio('crcue', pydata)
 

@@ -1,6 +1,7 @@
 import socket
 import sys
 import sqlite3
+import json
 
 #####CONEXION#######
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
