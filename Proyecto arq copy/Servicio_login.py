@@ -56,7 +56,7 @@ while a == 0:
 
             #********* Consulta BDD **********
             data_search = (datos['Email'],datos['Password'])
-            cur.execute('SELECT * FROM usuario  WHERE Usuario.Email = ? AND Usuario.Password = ? ',data_search)
+            cur.execute('SELECT idUsuario, RUT FROM Usuario  WHERE Usuario.Email = ? AND Usuario.Password = ? ',data_search)
             myresult = cur.fetchall()
             print("DATOS ENCONTRADOS:",myresult)
             conn.commit()
@@ -67,7 +67,8 @@ while a == 0:
                 print("Logeado")
                 #connection.sendall(b'True')
                 
-                tx_cmd = service_name + 'True' + myresult[0][0] # Comando de registro de servicio ante el bus
+                jrows = json.dumps(myresult,default=str)
+                tx_cmd = service_name + 'True' + jrows # Comando de registro de servicio ante el bus
                 tx = generate_tx_length(len(tx_cmd)) + tx_cmd
                 sock.send(tx.encode(encoding='UTF-8'))
             else:

@@ -30,7 +30,7 @@ def generate_tx_length(tx_length):
     
     return str_tx_length
 
-service_name = 'hstrb'
+service_name = 'idcnt'
 
 tx_cmd = 'sinit'+ service_name # Comando de registro de servicio ante el bus
 tx = generate_tx_length(len(tx_cmd)) + tx_cmd
@@ -43,35 +43,23 @@ print(status)
 
 ###################
 
-a = 0 
 while a == 0:
-    # Wait for a connection
+
     print('waiting for a connection')
     #connection, client_address = sock.accept()
     try:
-        print('connection from', client_address)
-        # Receive the data in small chunks and retransmit it
         while True:
             aux1 = sock.recv(250)
             aux = aux1[10:]
             datos = eval(aux) #Datos recibidos"
             print("DATOS RECIBIDOS DEL CLIENTE:",datos)
 
-            datos = eval(aux)
-            #print(datos)
-            sql1 = "SELECT Monto, Fecha, Numero_cuenta_origen, Comentario FROM TransaccionRecivida WHERE Cuenta_idCuenta = ?"
-            cur.execute(sql1,(datos["idCuenta"],))
-            myresult = c.fetchall()
-            print(rows)
+            #********* Crear usuario BDD **********
+            data_search = (datos['idUsuario'],)
+            cur.execute('SELECT Cuenta.idCuenta, Tipo.Nombre, Cuenta.Numero, Cuenta.Saldo  FROM (Cuenta INNER JOIN Usuario ON Cuenta.Usuario_idUsuario = Usuario.idUsuario INNER JOIN Tipo ON Cuenta.Tipo_idTipo = Tipo.idTIpo) WHERE Cuenta.Usuario_idUsuario = ?',data_search)
+            myresult = cur.fetchall()
             conn.commit()
-
-            aux = 0
-            while aux < len(myresult):
-                if myresult[aux][3] == None:
-                    myresult[aux] = list (myresult[aux])
-                    myresult[aux][3] = "sin comentario"
-                    myresult[aux] = tuple (myresult[aux])
-                aux = aux + 1
+            #********************
 
             if len(myresult):
                 print("Enviando datos")
@@ -86,10 +74,9 @@ while a == 0:
                 tx = generate_tx_length(len(tx_cmd)) + tx_cmd
                 sock.send(tx.encode(encoding='UTF-8'))
             break
+
         a = 1
-
         sock.close()
+
     finally:
-        # Clean up the connection
         sock.close()
-

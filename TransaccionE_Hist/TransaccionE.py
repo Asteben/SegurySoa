@@ -1,18 +1,23 @@
 import socket
 import sys
-import mysql.connector
+import sqlite3
 import json
 
-
-# Create a TCP/IP socket
+#####CONEXION#######
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-# Bind the socket to the port
-server_address = ('127.0.0.1', 5000)
+server_address = ('200.14.84.235', 5000)
 print('starting up on {} port {}'.format(*server_address))
 sock.connect(server_address)
+####################
 
+##### Conexion base de datos #####
+conn = sqlite3.connect('banco.sqlite')
+cur = conn.cursor()
+####################
 
+a = 0 #Esto es basicamente hacer el stop al while.
+
+###################
 def generate_tx_length(tx_length):
     char_ammount = 5 # Cantidad de caracteres máximos para definir el largo de la transacción (5 según formato solicitado por el bus)
     char_left = char_ammount - len(str(tx_length)) # Espacios sobrantes para rellenar con 0 a la izquierda
@@ -25,22 +30,18 @@ def generate_tx_length(tx_length):
     
     return str_tx_length
 
-service_name = 'htrse'
+service_name = 'hstem'
 
 tx_cmd = 'sinit'+ service_name # Comando de registro de servicio ante el bus
 tx = generate_tx_length(len(tx_cmd)) + tx_cmd
 
-#sock.send(tx.encode(encoding='UTF-8'))
-
-sock.send('00010sinithtrse'.encode())
+sock.send(tx.encode(encoding='UTF-8'))
 
 status = sock.recv(4096).decode('UTF-8')[10:12] # 'OK' (exitoso) o 'NK' (fallido)
 
 print(status)
 
-# Conexion base de datos
-db = mysql.connector.connect(user="root",password="root123",host="localhost",database="mydb1")
-c = db.cursor()
+###################
 
 a = 0 
 while a == 0:
@@ -51,35 +52,44 @@ while a == 0:
         print('connection from', client_address)
         # Receive the data in small chunks and retransmit it
         while True:
-            aux = sock.recv(250)
-            print('received {!r}'.format(aux))
+            aux1 = sock.recv(250)
+            aux = aux1[10:]
+            datos = eval(aux) #Datos recibidos"
+            print("DATOS RECIBIDOS DEL CLIENTE:",datos)
 
             datos = eval(aux)
-            print(datos)
-            sql1 = "SELECT Monto, Fecha, Numero_cuenta_destino, Comentario FROM TransaccionEnviada WHERE Cuenta_idCuenta = (%s)"
-            c.execute(sql1,(datos["idCuenta"],))
-            rows = c.fetchall()
-            print(rows)
-            db.commit()
+            #print(datos)
+            sql1 = "SELECT Monto, Fecha, Numero_cuenta_destino, Comentario FROM TransaccionEnviada WHERE Cuenta_idCuenta = ?"
+            cur.execute(sql1,(datos["idCuenta"],))
+            myresult = c.fetchall()
+            conn.commit()
 
             aux = 0
-            while aux < len(rows):
-                if rows[aux][3] == None:
-                    rows[aux] = list (rows[aux])
-                    rows[aux][3] = "sin comentario"
-                    rows[aux] = tuple (rows[aux])
+            while aux < len(myresult):
+                if myresult[aux][3] == None:
+                    myresult[aux] = list (myresult[aux])
+                    myresult[aux][3] = "sin comentario"
+                    myresult[aux] = tuple (myresult[aux])
                 aux = aux + 1
 
-            jrows = json.dumps(rows,default=str)
-            brows = b'' + jrows
+            if len(myresult):
+                print("Enviando datos")
 
-            sock.sendall(brows)
+                jrows = json.dumps(myresult,default=str)
+                tx_cmd = service_name + 'True' + jrows # Comando de registro de servicio ante el bus
+                tx = generate_tx_length(len(tx_cmd)) + tx_cmd
+                sock.send(tx.encode(encoding='UTF-8'))
+            else:
+                print("Error")
+                tx_cmd = service_name + 'False' # Comando de registro de servicio ante el bus
+                tx = generate_tx_length(len(tx_cmd)) + tx_cmd
+                sock.send(tx.encode(encoding='UTF-8'))
             break
         a = 1
-        c.close()
+
         sock.close()
     finally:
         # Clean up the connection
         sock.close()
-db.close()
+
 

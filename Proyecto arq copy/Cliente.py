@@ -52,6 +52,7 @@ while True:
 
   if opcion == 1:
     Login_user = False
+    id_login = 0
     rut_login = 0
     if getsv('login') == 'OK':
       print("Por favor ingresar los siguientes datos")
@@ -76,8 +77,11 @@ while True:
       if data[12:16] == b'True': #Respuesta False -> No se pudo logear
         print ( "Logeado")
         Login_user = True #De lo contrario, se logea.
-        rut_login = data[16:].decode("utf-8") 
-        print(rut_login)
+        dataeval = eval(data[16:])
+        id_login = dataeval[0][0]
+        rut_login = dataeval[0][1]
+        #id_login = data[16:].decode("utf-8") 
+        #print(rut_login)
 
         #USUARIO LOGEADO, NUEVAS OPCIONES
         while True:
@@ -85,17 +89,15 @@ while True:
           print ("2.- verificar datos de una cuenta")
           print ("3.- realizar transferencia desde una cuenta")
           print ("4.- realizar pago de servicio desde una cuenta")
-          print ("5.- ver trasnferencias emitidas anteriormente desde una cuenta")
-          print ("6.- ver transferencias recibidas anteriormente en una cuenta")
-          print ("7.- ver pagos realizados desde una cuenta")
-          print ("8.- Salir")
+          print ("5.- ver datos de una cuenta")
+          print ("6.- Salir")
           opcion = int(input("Ingrese numero respectivo a la opcion que desee realizar:"))
 
           if opcion == 2:
             print("hola")
 
             pydata= {
-            "Rut":rut_login,
+              "Rut":rut_login
             }
             print(pydata["Rut"])
             Envio('infor',pydata)
@@ -109,67 +111,119 @@ while True:
             else:
               print("ERROR")
 
+########################## Cuentas ############################## 
+          elif opcion == 5
+            if getsv('idcnt') == 'OK':
+              pydata = {
+                "idUsuario" : id_login
+              }
 
-########################## TRANSFERENCIAS EMITIDAS ##############################  
-      
-          elif opcion == 5:
-            if getsv('hstem') == 'OK':
-              pydata = {"idCuenta" : ""}
-              pydata["idCuenta"] = recb1["idCuenta"]
+              Envio('idcnt', pydata)
 
-              Envio('hstem', pydata)
-
+              idcuentas = []
+              error = False
               data = b''
               while True:
                   data = sock.recv(250)
-                  dataeval = eval(data[16:])
-                  print("Las transacciones enviadas historicamente son:")
-                  aux = 0
-                  while aux < len(dataeval):
-                      print(dataeval[aux][3])
-                      print(aux,"- Numero de cuenta destino:",dataeval[aux][2],"Monto:",dataeval[aux][0],"Fecha:",dataeval[aux][1],"Comentario:",dataeval[aux][3])
+                  if data[12:16] == b'True':
+                    dataeval = eval(data[16:])
+                    print("Las cuentas bancarias propias son:")
+                    aux = 0
+                    while aux < len(dataeval):
+                      idcuentas.append(dataeval[aux][0])
+                      idnumeros.append(dataeval[aux][2])
+                      print(aux+1,"- Tipo:",dataeval[aux][1],"Numero de cuenta:",dataeval[aux][2],"Saldo:",dataeval[aux][3])
                       aux = aux + 1
+                  else:
+                    print("ha ocurrido un error!")
+                    error = True
+                    break
                   break
+              
+              if error == False:
+                while True:
+                  select= int(input("Seleccione cuenta para ver datos historicos, ingrese 0 para volver"))
+                  if select <= 0:
+                    break
+                  else:
+                    print ("1.- ver trasnferencias emitidas anteriormente desde una cuenta")
+                    print ("2.- ver transferencias recibidas anteriormente en una cuenta")
+                    print ("3.- ver pagos realizados desde una cuenta")
+                    print ("4.- Volver")
+                    opcion = int(input("Ingrese numero respectivo a la opcion que desee realizar:"))
+
+########################## TRANSFERENCIAS EMITIDAS ##############################  
+      
+                    elif opcion == 1:
+                      if getsv('hstem') == 'OK':
+                        pydata = {
+                          "idCuenta" : idcuentas[select-1]
+                        }
+
+                        Envio('hstem', pydata)
+
+                        data = b''
+                        while True:
+                          data = sock.recv(250)
+                          if data[12:16] == b'True':
+                            dataeval = eval(data[16:])
+                            print("Las transacciones enviadas historicamente son:")
+                            aux = 0
+                            while aux < len(dataeval):
+                                print(dataeval[aux][3])
+                                print(aux,"- Numero de cuenta destino:",dataeval[aux][2],"Monto:",dataeval[aux][0],"Fecha:",dataeval[aux][1],"Comentario:",dataeval[aux][3])
+                                aux = aux + 1
+                          else:
+                            break
+                          break
           
 ########################## TRANSFERENCIAS RECIBIDAS #############################
                     
-          elif opcion == 6:
-            if getsv('hstrb') == 'OK':
-              pydata = {"idCuenta" : ""}
-              pydata["idCuenta"] = recb1["idCuenta"]
+                    elif opcion == 2:
+                      if getsv('hstrb') == 'OK':
+                        pydata = {
+                          "idCuenta" : idcuentas[select-1]
+                        }
 
-              Envio('hstrb', pydata)
+                        Envio('hstrb', pydata)
 
-              data = b''
-              while True:
-                  data[16:] = sock.recv(250)
-                  dataeval = eval(data[16:])
-                  print("Las transacciones recividas historicamente son:")
-                  aux = 0
-                  while aux < len(dataeval):
-                      print(aux,"- Numero de cuenta origen:",dataeval[aux][2],"Monto:",dataeval[aux][0],"Fecha:",dataeval[aux][1],"Comentario:",dataeval[aux][3])
-                      aux = aux + 1
-                  break
+                        data = b''
+                        while True:
+                          data = sock.recv(250)
+                          if data[12:16] == b'True':
+                            dataeval = eval(data[16:])
+                            print("Las transacciones recividas historicamente son:")
+                            aux = 0
+                            while aux < len(dataeval):
+                                print(aux,"- Numero de cuenta origen:",dataeval[aux][2],"Monto:",dataeval[aux][0],"Fecha:",dataeval[aux][1],"Comentario:",dataeval[aux][3])
+                                aux = aux + 1
+                          else:
+                            break
+                          break
 
-########################## TRANSFERENCIAS RECIBIDAS #############################
+########################## Pagos Realizados ####################################
                     
-          elif opcion == 7:
-            if getsv('hspag') == 'OK':
-              pydata = {"idCuenta" : ""}
-              pydata["idCuenta"] = recb1["idCuenta"]
+                    elif opcion == 3:
+                      if getsv('hspag') == 'OK':
+                        pydata = {
+                          "idCuenta" : idcuentas[select-1]
+                        }
 
-              Envio('hspag', pydata)
+                        Envio('hspag', pydata)
 
-              data = b''
-              while True:
-                  data[16:] = sock.recv(250)
-                  dataeval = eval(data[16:])
-                  print("Los Pagos efectuados historicamente son:")
-                  aux = 0
-                  while aux < len(dataeval):
-                      print(aux,"- Servicio:",dataeval[aux][0],"Monto:",dataeval[aux][1],"Fecha:",dataeval[aux][2])
-                      aux = aux + 1
-                  break
+                        data = b''
+                        while True:
+                          data = sock.recv(250)
+                          if data[12:16] == b'True':
+                            dataeval = eval(data[16:])
+                            print("Los Pagos efectuados historicamente son:")
+                            aux = 0
+                            while aux < len(dataeval):
+                                print(aux,"- Servicio:",dataeval[aux][0],"Monto:",dataeval[aux][1],"Fecha:",dataeval[aux][2])
+                                aux = aux + 1
+                          else:
+                            break
+                          break
 
           else:
             print("Hasta luego =)")
