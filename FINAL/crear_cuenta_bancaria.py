@@ -40,8 +40,8 @@ status = sock.recv(4096).decode('UTF-8')[10:12] # 'OK' (exitoso) o 'NK' (fallido
 print(status)
 
 
-a = 0 
-while a == 0:
+ 
+while True:
     print('waiting for a connection')
     try:
         while True:
@@ -74,8 +74,7 @@ while a == 0:
                 tx = generate_tx_length(len(tx_cmd)) + tx_cmd
                 sock.send(tx.encode(encoding='UTF-8'))
             break
-        sock.close()
-        a = 1
 
     finally:
-        sock.close()
+        print("finally")
+sock.close()
