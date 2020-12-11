@@ -43,8 +43,8 @@ print(status)
 ###################
 
 
-a = 0 
-while a == 0:
+
+while True:
     #espera una conexión
     print('waiting for a connection')
     #connection, client_address = sock.accept()
@@ -122,9 +122,7 @@ while a == 0:
                 sock.send(tx.encode(encoding='UTF-8'))
             break
 
-        a = 1
-        sock.close()
-
     finally:
-        # Clean up the connection
-        sock.close()
+       print("finally")
+        
+sock.close()
